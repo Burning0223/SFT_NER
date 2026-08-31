@@ -1,0 +1,11 @@
+__pycache__/ 
+
+.vscode/ 
+
+*.pt
+
+bc2gm1/
+
+Qwen/
+
+model_download.py/

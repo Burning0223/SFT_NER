@@ -1,0 +1,22 @@
+{
+    "model_path":"Qwen/Qwen2.5-7B",
+    "max_length":1024,
+    "epochs_num":20,
+    "batch_size":4,
+    "lr":5e-6,
+    "data_path":"./bc2gm1",
+    "labels_path":"./bc2gm1/labels.json",
+    "random":42,
+    "Instruction":"You are a biomedical named entity recognition model. Given a biomedical text, identify all entities, including their names, types, and positions. Return the results in JSON format.",
+    "lora_r":8,
+    "lora_alpha":16,
+    "lora_dropout":0.05,
+    "target_modules":[
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj"
+    ],
+    "peft_method":"qlora",
+    "max_new_tokens":256
+}
