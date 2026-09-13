@@ -9,7 +9,6 @@ from model import NER_SFT
 from data_process import SFTDataset
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, get_linear_schedule_with_warmup
-from peft import PeftModel
 parser = argparse.ArgumentParser(description='exp arg path')
 parser.add_argument('exp_arg')
 args = parser.parse_args()
@@ -84,7 +83,6 @@ class Trainer():
                     for inputs,outputs in zip(input_ids,generated_ids)
                 ]
                 responses=self.tokenizer.batch_decode(generated_ids,skip_special_tokens=True)
-                print(responses[:3])
                 pred_entities_batch=[
                     self.metric.parse_json(response)
                     for response in responses
@@ -139,22 +137,18 @@ class Trainer():
 def main(arg_path):
     arg=NERSFT_Argument(arg_path)
     random_seed(arg.random)
-    train_tokenizer = AutoTokenizer.from_pretrained(
+    tokenizer = AutoTokenizer.from_pretrained(
         arg.model_path,
-        padding_side="right"
         )
-    generate_tokenizer = AutoTokenizer.from_pretrained(
-        arg.model_path,
-        padding_side="left"
-        )
-    train_dataset=SFTDataset(arg=arg,dataset_type="train",tokenizer=train_tokenizer)
-    dev_dataset=SFTDataset(arg=arg,dataset_type="dev",tokenizer=generate_tokenizer)
-    test_dataset=SFTDataset(arg=arg,dataset_type="test",tokenizer=generate_tokenizer)
+    tokenizer.pad_token=tokenizer.eos_token
+    train_dataset=SFTDataset(arg=arg,dataset_type="train",tokenizer=tokenizer)
+    dev_dataset=SFTDataset(arg=arg,dataset_type="dev",tokenizer=tokenizer)
+    test_dataset=SFTDataset(arg=arg,dataset_type="test",tokenizer=tokenizer)
 
     train_dataloader=DataLoader(train_dataset,batch_size=arg.batch_size,shuffle=True,collate_fn=train_dataset.collate_fn)
     dev_dataloader=DataLoader(dev_dataset,batch_size=arg.batch_size,shuffle=False,collate_fn=dev_dataset.generate_collate_fn)
     test_dataloader=DataLoader(test_dataset,batch_size=arg.batch_size,shuffle=False,collate_fn=test_dataset.generate_collate_fn)
-    model=NER_SFT(arg=arg)
+    model=NER_SFT(arg=arg,tokenizer=tokenizer)
     optimizer=torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad],lr=arg.lr
     )
@@ -167,7 +161,7 @@ def main(arg_path):
                                               )
     labels=get_Labels(arg.labels_path)
     metric=Metric(labels=labels.labels)
-    trainer=Trainer(arg=arg,model=model,optimizer=optimizer,scheduler=scheduler,metric=metric,tokenizer=generate_tokenizer)
+    trainer=Trainer(arg=arg,model=model,optimizer=optimizer,scheduler=scheduler,metric=metric,tokenizer=tokenizer)
     trainer.save_checkpoint(train_loader=train_dataloader,dev_loader=dev_dataloader,test_loader=test_dataloader)
 
 if __name__=="__main__":

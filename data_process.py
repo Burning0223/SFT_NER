@@ -36,6 +36,7 @@ class SFTDataset(Dataset):
             full_text=prompt+output+self.tokenizer.eos_token
             prompts.append(prompt)
             full_texts.append(full_text)
+        self.tokenizer.padding_side = "right"
         prompts_ids=self.tokenizer(prompts,max_length=self.arg.max_length,
                                    padding=False,truncation=True)
         full_texts_ids=self.tokenizer(full_texts,return_tensors='pt',max_length=self.arg.max_length,
@@ -58,6 +59,7 @@ class SFTDataset(Dataset):
             prompt=self.build_prompt(sentence)
             prompts.append(prompt)
             true_entities.append(sample["entities"])
+        self.tokenizer.padding_side = "left"
         prompts_ids=self.tokenizer(prompts,return_tensors='pt',max_length=self.arg.max_length,
                                       padding=True,truncation=True)
         
