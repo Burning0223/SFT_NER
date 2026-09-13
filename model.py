@@ -42,5 +42,6 @@ class NER_SFT(torch.nn.Module):
             outputs=self.model(input_ids=input_ids,attention_mask=attention_mask,labels=labels)
         else:
             outputs=self.model.generate(input_ids=input_ids,attention_mask=attention_mask,
-                                        max_new_tokens=self.arg.max_new_tokens,do_sample=False)
+                                        max_new_tokens=self.arg.max_new_tokens,do_sample=False,
+                                        pad_token_id=self.tokenizer.pad_token_id)
         return outputs
