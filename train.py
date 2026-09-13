@@ -39,22 +39,35 @@ class Trainer():
     def train(self,dataloader):
         self.model.train()
         total_loss=0.0
-
-        for batch in dataloader:
-            batch={k:v.to(device) for k,v in batch.items()}
-            self.optimizer.zero_grad()
-            input_ids=batch["input_ids"]
-            attention_mask=batch["attention_mask"]
-            labels=batch["labels"]
-            outputs=self.model(input_ids=input_ids,
-                               attention_mask=attention_mask,
-                               labels=labels)
-            loss=outputs.loss
-            total_loss+=loss.item()
-            loss.backward()
+        steps_in_dataloader=len(dataloader)
+        epoch_iterator=iter(dataloader)
+        self.optimizer.zero_grad()
+        num_update_steps_per_epoch=(steps_in_dataloader+self.arg.gradient_accumulation_steps-1)//self.arg.gradient_accumulation_steps
+        remainder=steps_in_dataloader%self.arg.gradient_accumulation_steps
+        if remainder==0:
+            remainder=self.arg.gradient_accumulation_steps
+        for update_step in range(num_update_steps_per_epoch):
+            num_batches=(
+                self.arg.gradient_accumulation_steps if update_step!=(num_update_steps_per_epoch-1) else remainder
+            )
+            current_gradient_accumulation_steps=num_batches
+            for i in range(num_batches):
+                batch=next(epoch_iterator)
+                batch={k:v.to(device) for k,v in batch.items()}
+                input_ids=batch["input_ids"]
+                attention_mask=batch["attention_mask"]
+                labels=batch["labels"]
+                outputs=self.model(input_ids=input_ids,
+                                    attention_mask=attention_mask,
+                                    labels=labels)
+                loss=outputs.loss
+                total_loss+=loss.item()
+                loss=loss/current_gradient_accumulation_steps
+                loss.backward()
             self.optimizer.step()
             self.scheduler.step()
-        ave_loss=total_loss/len(dataloader)
+            self.optimizer.zero_grad()
+        ave_loss=total_loss / steps_in_dataloader
         return ave_loss
 
     def dev(self,dataloader):
@@ -163,4 +176,3 @@ def main(arg_path):
 
 if __name__=="__main__":
     main(args.exp_arg)
-
