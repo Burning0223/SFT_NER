@@ -38,6 +38,8 @@ class Metric:
     def parse_json(self,response):
         try:
             entities=json.loads(response)
+            if isinstance(entities,dict):
+                entities=entities.get("entities",[])
             if not isinstance(entities,list):
                 return []
             return entities
@@ -48,8 +50,7 @@ class Metric:
             return (
                 entity["name"],
                 entity["type"],
-                entity["pos"][0],
-                entity["pos"][1]
+
             )
         except (KeyError,TypeError,IndexError):
             return None
