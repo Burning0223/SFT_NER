@@ -1,11 +1,14 @@
 import json
 from torch.utils.data import Dataset
+from template import TEMPLATES
 class SFTDataset(Dataset):
     def __init__(self,arg,dataset_type,tokenizer):
         self.arg=arg
         self.dataset_type=dataset_type
+        self.template=TEMPLATES[arg.template]
         self.tokenizer=tokenizer
         self.data=self.load_data(dataset_type)
+        
     def load_data(self,dataset_type):
         if dataset_type=="train":
             file_path=f"{self.arg.data_path}/train.json"
@@ -26,14 +29,20 @@ class SFTDataset(Dataset):
         return (
             self.arg.Instruction+f"Text:{sentence}"+"Output:"
         )
+    def build_response(self,entities):
+        entity_list=[]
+        for entity in entities:
+            entity_list.append({"name":entity['name'],"type":entity['type']})
+        response={"entities":entity_list}
+        return json.dumps(response,ensure_ascii=False)
     def collate_fn(self,batch):
         prompts=[]
         full_texts=[]
         for sample in batch:
             sentence=sample["sentence"]
-            prompt=self.build_prompt(sentence)
-            output=json.dumps(sample["entities"],ensure_ascii=False)#json.dumps()方法将 Python 数据类型转换为 JSON 格式的字符串
-            full_text=prompt+output+self.tokenizer.eos_token
+            user_content=self.build_prompt(sentence)
+            assistant_content=self.build_response(sample["entities"])
+            prompt,full_text=self.template.format(user_content,assistant_content)
             prompts.append(prompt)
             full_texts.append(full_text)
         self.tokenizer.padding_side = "right"
@@ -56,13 +65,13 @@ class SFTDataset(Dataset):
         true_entities=[]
         for sample in batch:
             sentence=sample["sentence"]
-            prompt=self.build_prompt(sentence)
+            user_content=self.build_prompt(sentence)
+            prompt=self.template.format_prompt(user_content)
             prompts.append(prompt)
             true_entities.append(sample["entities"])
         self.tokenizer.padding_side = "left"
         prompts_ids=self.tokenizer(prompts,return_tensors='pt',max_length=self.arg.max_length,
                                       padding=True,truncation=True)
-        
         return {
             "input_ids":prompts_ids["input_ids"],
             "attention_mask":prompts_ids["attention_mask"],
