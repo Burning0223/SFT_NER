@@ -156,9 +156,10 @@ def main(arg_path):
     test_dataloader=DataLoader(test_dataset,batch_size=arg.batch_size,shuffle=False,collate_fn=test_dataset.generate_collate_fn)
     model=NER_SFT(arg=arg)
     optimizer=torch.optim.AdamW(
-        model.parameters(),lr=arg.lr
+        [p for p in model.parameters() if p.requires_grad],lr=arg.lr
     )
-    total_steps=len(train_dataloader)*arg.epochs_num
+    steps_per_epoch=(len(train_dataloader)+arg.gradient_accumulation_steps-1)//arg.gradient_accumulation_steps
+    total_steps = steps_per_epoch * arg.epochs_num
     num_warmup_steps=int(total_steps*0.1)
     scheduler=get_linear_schedule_with_warmup(optimizer=optimizer,
                                               num_warmup_steps=num_warmup_steps,
