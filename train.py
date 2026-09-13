@@ -105,24 +105,18 @@ class Trainer():
             print(f"验证集精准率:{dev_precision:.4f}")
             print(f"验证集召回率:{dev_recall:.4f}")
             print(f"验证集f1分数:{dev_f1:.4f}")
-            checkpoint_name=f"check_epoch_{epoch+1}.pt"
+            checkpoint_name=f"check_epoch_{epoch+1}"
             checkpoint_path=os.path.join(self.experiment_dir,checkpoint_name)
             if dev_f1>=dev_f1_best:
                 dev_f1_best=dev_f1
                 best_model_path=checkpoint_path
                 self.model.model.save_pretrained(checkpoint_path)
-                torch.save(
-                    {
-                        "epoch":epoch,
-                        "f1":dev_f1,
-                        "optimizer":self.optimizer.state_dict(),
-                        "scheduler":self.scheduler.state_dict()
-                    },
-                    os.path.join(
-                        checkpoint_path,
-                        "training_state.pt"
-                    )
-                )
+                torch.save({
+                    "optimizer":self.optimizer.state_dict(),
+                    "scheduler":self.scheduler.state_dict(),
+                    "epoch":epoch + 1,
+                    "dev_f1":dev_f1_best,
+                    },os.path.join(checkpoint_path,"training_state.pt"))
                 print(f"当前模型最优f1分数为:{dev_f1_best}")
                 print(f"保存最佳模型：{best_model_path}")
             swanlab.log({
@@ -134,6 +128,7 @@ class Trainer():
         if not os.path.exists(best_model_path):
             print("未找到最优模型，无法进行测试！")
             return
+        self.model.load_best_model(best_model_path)
         test_precision,test_recall,test_f1=self.dev(test_loader)
         print(f"测试集精准率:{test_precision:.4f}")
         print(f"测试集召回率:{test_recall:.4f}")
