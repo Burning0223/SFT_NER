@@ -20,8 +20,6 @@
     "peft_method":"lora",
     "max_new_tokens":256,
     "gradient_accumulation_steps":8,
-    "use_fast_tokenizer":true,
-    "split_special_tokens":false,
     "template":"qwen"
 
 }
