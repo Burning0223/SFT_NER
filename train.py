@@ -59,10 +59,15 @@ class Trainer():
                 outputs=self.model(input_ids=input_ids,
                                     attention_mask=attention_mask,
                                     labels=labels)
+                del input_ids
+                del attention_mask
+                del labels
                 loss=outputs.loss
+                del outputs
                 total_loss+=loss.item()
                 loss=loss/current_gradient_accumulation_steps
                 loss.backward()
+                del loss
             self.optimizer.step()
             self.scheduler.step()
             self.optimizer.zero_grad()
