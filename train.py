@@ -95,6 +95,7 @@ class Trainer():
                 self.metric.calculate(pred_entities_batch,true_entities_batch)
             dev_precision,dev_recall,dev_f1=self.metric.compute(self.metric.tp,self.metric.pred_sum,self.metric.true_sum)
             self.metric.report()
+            torch.cuda.empty_cache()
             return dev_precision,dev_recall,dev_f1
 
     def save_checkpoint(self,train_loader,dev_loader,test_loader):
@@ -131,6 +132,9 @@ class Trainer():
         if not os.path.exists(best_model_path):
             print("未找到最优模型，无法进行测试！")
             return
+        del self.optimizer
+        del self.scheduler
+        torch.cuda.empty_cache()
         self.model.load_best_model(best_model_path)
         test_precision,test_recall,test_f1=self.dev(test_loader)
         print(f"测试集精准率:{test_precision:.4f}")

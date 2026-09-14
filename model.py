@@ -25,7 +25,7 @@ class NER_SFT(torch.nn.Module):
             bnb_config=BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_use_double_quant=True,
-                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_compute_dtype=torch.bfloat16,
                 bnb_4bit_quant_type="nf4"
             )
             base_model=AutoModelForCausalLM.from_pretrained(
@@ -39,6 +39,8 @@ class NER_SFT(torch.nn.Module):
             )
         return base_model
     def load_best_model(self,best_model_path):
+        del self.model
+        torch.cuda.empty_cache()
         base_model=self.load_base_model()
         self.model=PeftModel.from_pretrained(base_model, best_model_path, is_trainable=False)
     
