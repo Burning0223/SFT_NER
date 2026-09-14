@@ -13,6 +13,11 @@ class NER_SFT(torch.nn.Module):
                                            target_modules=arg.target_modules)
         self.model=self.load_base_model()
         self.model=get_peft_model(self.model,lora_config)
+        self.model.gradient_checkpointing_enable(
+                    gradient_checkpointing_kwargs={"use_reentrant":False}
+                )
+        self.model.enable_input_require_grads()
+        self.model.config.use_cache=False
     def load_base_model(self):
         if self.arg.peft_method=="lora":
             base_model=AutoModelForCausalLM.from_pretrained(self.arg.model_path,torch_dtype=torch.bfloat16)
