@@ -32,7 +32,7 @@ class NER_SFT(torch.nn.Module):
                 self.arg.model_path,
                 quantization_config=bnb_config
             )
-            base_model=prepare_model_for_kbit_training(base_model,use_gradient_checkpointing=True)
+            base_model=prepare_model_for_kbit_training(base_model)
         else:
             raise ValueError(
                 f"不支持的peft_method: {self.arg.peft_method}"
