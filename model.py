@@ -2,10 +2,11 @@ import torch
 from transformers import AutoModelForCausalLM,BitsAndBytesConfig
 from peft import LoraConfig,TaskType,get_peft_model,prepare_model_for_kbit_training,PeftModel
 class NER_SFT(torch.nn.Module):
-    def __init__(self,arg,tokenizer):
+    def __init__(self,arg,tokenizer,device):
         super().__init__()
         self.arg=arg
         self.tokenizer=tokenizer
+        self.device=device
         lora_config=LoraConfig(task_type=TaskType.CAUSAL_LM,
                                            r=arg.lora_r,
                                            lora_alpha=arg.lora_alpha,
@@ -43,12 +44,14 @@ class NER_SFT(torch.nn.Module):
         torch.cuda.empty_cache()
         base_model=self.load_base_model()
         self.model=PeftModel.from_pretrained(base_model, best_model_path, is_trainable=False)
-    
+        self.model=self.model.to(self.device)
+        self.model.config.use_cache=False
+        torch.cuda.empty_cache()
     def forward(self,input_ids,attention_mask,labels=None):
         if labels is not None:
             outputs=self.model(input_ids=input_ids,attention_mask=attention_mask,labels=labels)
         else:
             outputs=self.model.generate(input_ids=input_ids,attention_mask=attention_mask,
                                         max_new_tokens=self.arg.max_new_tokens,do_sample=False,
-                                        pad_token_id=self.tokenizer.pad_token_id)
+                                        pad_token_id=self.tokenizer.pad_token_id,use_cache=False)
         return outputs

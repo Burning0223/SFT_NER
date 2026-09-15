@@ -87,12 +87,18 @@ class Trainer():
                     outputs[len(inputs):]
                     for inputs,outputs in zip(input_ids,generated_ids)
                 ]
+                del input_ids
+                del attention_mask
                 responses=self.tokenizer.batch_decode(generated_ids,skip_special_tokens=True)
+                del generated_ids
                 pred_entities_batch=[
                     self.metric.parse_json(response)
                     for response in responses
                 ]
+                del responses
                 self.metric.calculate(pred_entities_batch,true_entities_batch)
+                del pred_entities_batch
+                torch.cuda.empty_cache()
             dev_precision,dev_recall,dev_f1=self.metric.compute(self.metric.tp,self.metric.pred_sum,self.metric.true_sum)
             self.metric.report()
             torch.cuda.empty_cache()
@@ -157,7 +163,7 @@ def main(arg_path):
     train_dataloader=DataLoader(train_dataset,batch_size=arg.batch_size,shuffle=True,collate_fn=train_dataset.collate_fn)
     dev_dataloader=DataLoader(dev_dataset,batch_size=arg.batch_size,shuffle=False,collate_fn=dev_dataset.generate_collate_fn)
     test_dataloader=DataLoader(test_dataset,batch_size=arg.batch_size,shuffle=False,collate_fn=test_dataset.generate_collate_fn)
-    model=NER_SFT(arg=arg,tokenizer=tokenizer)
+    model=NER_SFT(arg=arg,tokenizer=tokenizer,device=device)
     optimizer=torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad],lr=arg.lr
     )
