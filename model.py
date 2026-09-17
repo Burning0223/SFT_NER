@@ -40,18 +40,20 @@ class NER_SFT(torch.nn.Module):
             )
         return base_model
     def load_best_model(self,best_model_path):
-        del self.model
-        torch.cuda.empty_cache()
-        base_model=self.load_base_model()
-        self.model=PeftModel.from_pretrained(base_model, best_model_path, is_trainable=False)
-        self.model=self.model.to(self.device)
-        self.model.config.use_cache=False
-        torch.cuda.empty_cache()
+        self.model.load_adapter(best_model_path,
+                                adapter_name="best",
+                                is_trainable=False,
+                                torch_device=str(self.device))
+        self.model.set_adapter("best")
     def forward(self,input_ids,attention_mask,labels=None):
         if labels is not None:
-            outputs=self.model(input_ids=input_ids,attention_mask=attention_mask,labels=labels)
+            outputs=self.model(input_ids=input_ids,
+                               attention_mask=attention_mask,
+                               labels=labels,
+                               return_dict=False,
+                               use_cache=False)
         else:
             outputs=self.model.generate(input_ids=input_ids,attention_mask=attention_mask,
                                         max_new_tokens=self.arg.max_new_tokens,do_sample=False,
-                                        pad_token_id=self.tokenizer.pad_token_id,use_cache=False)
+                                        pad_token_id=self.tokenizer.pad_token_id,use_cache=True)
         return outputs
