@@ -1,3 +1,4 @@
+import gc
 import torch
 import random
 import numpy as np
@@ -133,6 +134,7 @@ class Trainer():
             return
         del self.optimizer
         del self.scheduler
+        gc.collect()
         torch.cuda.empty_cache()
         self.model.load_best_model(best_model_path)
         test_precision,test_recall,test_f1=self.dev(test_loader)
