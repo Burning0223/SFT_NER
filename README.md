@@ -80,10 +80,10 @@ pip install -r requirements.txt
 [{"entities": [{"name": "hFIRE", "type": "GENE"}, {"name": "Sp1", "type": "GENE"}, {"name": "Sp3", "type": "GENE"}, {"name": "CBF", "type": "GENE"}]}]
 ```
 ## 实验结果
-### Lora
+### QLora
 运行命令：
 ``` 
-python train.py Argument/arg_2.json
+python train.py Argument/arg_1.json
 ```
 
 ``` 
@@ -97,10 +97,10 @@ micro avg 0.84           0.83           0.84           5947
 <img width="2210" height="841" alt="image" src="https://github.com/user-attachments/assets/13aad9d9-8afd-4b15-885f-5b9993af4e16" />
 显存峰值为13342MB≈13GB
 
-  #### QLora
+  #### Lora
 运行命令：
 ``` 
-python train.py Argument/arg_1.json
+python train.py Argument/arg_2.json
 ```
 
 ``` 
