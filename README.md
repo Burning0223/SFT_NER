@@ -112,5 +112,6 @@ micro avg 0.84           0.83           0.83           5947
 测试集f1分数:0.8339
 ``` 
 <img width="760" height="328" alt="image" src="https://github.com/user-attachments/assets/0ca34927-0691-4382-8b9e-956ea004a185" />
+
 显存峰值为26916MB≈26.29GB
 
