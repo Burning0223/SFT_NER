@@ -47,6 +47,7 @@ class Trainer():
         if remainder==0:
             remainder=self.arg.gradient_accumulation_steps
         for update_step in range(num_update_steps_per_epoch):
+            torch.cuda.empty_cache()
             num_batches=(
                 self.arg.gradient_accumulation_steps if update_step!=(num_update_steps_per_epoch-1) else remainder
             )
