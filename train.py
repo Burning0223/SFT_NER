@@ -56,18 +56,13 @@ class Trainer():
                 input_ids=batch["input_ids"]
                 attention_mask=batch["attention_mask"]
                 labels=batch["labels"]
-                outputs=self.model(input_ids=input_ids,
-                                    attention_mask=attention_mask,
-                                    labels=labels)
-                del input_ids
-                del attention_mask
-                del labels
-                loss=outputs.loss
-                del outputs
-                total_loss+=loss.item()
+                loss=self.model(input_ids=input_ids,
+                                attention_mask=attention_mask,
+                                labels=labels,
+                                )[0]
                 loss=loss/current_gradient_accumulation_steps
                 loss.backward()
-                del loss
+                total_loss+=loss.item()
             self.optimizer.step()
             self.scheduler.step()
             self.optimizer.zero_grad()
