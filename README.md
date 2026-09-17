@@ -1,23 +1,34 @@
 # 大模型的指令微调的实体识别（NER）任务
 ## 项目简介
 本项目基于 PyTorch 和 Hugging Face Transformers 框架，实现基于大语言模型指令微调的中文命名实体识别（NER）任务。
+
 项目以 Qwen2.5-7B-Instruct 为基础模型，通过构造指令（Instruction）、输入文本（Input）和实体标注结果（Output），对模型进行监督微调，使模型能够根据给定的医学文本识别其中的实体及其类型。
+
 本项目主要用于学习和实现大模型指令微调的完整流程，包括：
+
 （1）Prompt 构造与 Tokenizer 处理
+
 （2）训练集、验证集和测试集处理
+
 （3）LoRA、Qlora
+
 （4）梯度检查点（Gradient Checkpointing）
+
 （5）梯度累计
+
 （6）模型训练与验证
+
 （7）最优模型保存与加载
+
 （8）Precision、Recall和F1-Score评估
+
 ## 项目结构
 ``` 
 ├── Argument         # 参数配置文件
 │   ├── arg_1.json
 │   └── arg_2.json
 ├── utils.py          # 功能类
-├── model.py           # BERT 模型定义
+├── model.py           # 模型定义
 ├── data_process.py    # 数据预处理
 ├── train.py     # 训练器以及程序入口
 ├── template.py     # Prompt模板
@@ -72,7 +83,7 @@ pip install -r requirements.txt
 ### Lora
 运行命令：
 ``` 
-python train.py Argument/arg_1.json
+python train.py Argument/arg_2.json
 ```
 
 ``` 
@@ -84,12 +95,12 @@ micro avg 0.84           0.83           0.84           5947
 测试集f1分数:0.8351
 ```
 <img width="2210" height="841" alt="image" src="https://github.com/user-attachments/assets/13aad9d9-8afd-4b15-885f-5b9993af4e16" />
-**显存峰值为13342MB≈13GB**
+显存峰值为13342MB≈13GB
 
   #### QLora
 运行命令：
 ``` 
-python train.py Argument/arg_2.json
+python train.py Argument/arg_1.json
 ```
 
 ``` 
@@ -101,5 +112,5 @@ micro avg 0.84           0.83           0.83           5947
 测试集f1分数:0.8339
 ``` 
 <img width="760" height="328" alt="image" src="https://github.com/user-attachments/assets/0ca34927-0691-4382-8b9e-956ea004a185" />
-**显存峰值为26916MB≈26.29GB**
+显存峰值为26916MB≈26.29GB
 
