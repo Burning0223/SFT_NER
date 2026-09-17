@@ -78,21 +78,19 @@ class Trainer():
                 attention_mask=batch["attention_mask"].to(device)
                 true_entities_batch=batch["true_labels"]
                 generated_ids=self.model(input_ids=input_ids,attention_mask=attention_mask)#原来的输入+新生成的内容
+                generated_ids=generated_ids.cpu()
+                input_ids=input_ids.cpu()
                 generated_ids=[
                     outputs[len(inputs):]
                     for inputs,outputs in zip(input_ids,generated_ids)
                 ]
-                del input_ids
-                del attention_mask
                 responses=self.tokenizer.batch_decode(generated_ids,skip_special_tokens=True)
-                del generated_ids
                 pred_entities_batch=[
                     self.metric.parse_json(response)
                     for response in responses
                 ]
-                del responses
                 self.metric.calculate(pred_entities_batch,true_entities_batch)
-                del pred_entities_batch
+                del input_ids,attention_mask,generated_ids,responses,pred_entities_batch
                 torch.cuda.empty_cache()
             dev_precision,dev_recall,dev_f1=self.metric.compute(self.metric.tp,self.metric.pred_sum,self.metric.true_sum)
             self.metric.report()
