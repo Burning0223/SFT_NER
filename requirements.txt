@@ -1,0 +1,6 @@
+modelscope==1.39.1
+numpy==2.5.3
+peft==0.20.0
+swanlab==0.10.0
+torch==2.9.1
+transformers==4.57.3
